@@ -5,6 +5,10 @@ import * as cheerio from 'cheerio';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Scrapestack API Integration
+const SCRAPESTACK_KEY = process.env.SCRAPESTACK_KEY || '0a2d06e890cbfedaf9eb1a7dc481d879';
+const SCRAPESTACK_URL = 'https://api.scrapestack.com/scrape';
+
 // Elite Iowa military proxy pool
 const IOWA_PROXIES = [
     '208.108.118.42:3128', '216.164.58.134:8080', 
@@ -55,6 +59,15 @@ app.get('/browse', async (req, res) => {
             return res.redirect('/');
         }
 
+        // Use Scrapestack API for reliable scraping
+        const scrapestackParams = new URLSearchParams({
+            access_key: SCRAPESTACK_KEY,
+            url: targetUrl,
+            premium_proxy: 'true',
+            render_js: 'true',
+            proxy_location: 'us'
+        });
+
         const proxyConfig = {
             method: 'GET',
             headers: {
@@ -69,10 +82,10 @@ app.get('/browse', async (req, res) => {
                 'Sec-Fetch-Mode': 'navigate',
                 'Sec-Fetch-Site': 'none'
             },
-            timeout: 20000
+            timeout: 30000
         };
 
-        const response = await fetch(targetUrl, proxyConfig);
+        const response = await fetch(`${SCRAPESTACK_URL}?${scrapestackParams}`, proxyConfig);
         
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
@@ -98,12 +111,12 @@ app.get('/browse', async (req, res) => {
                 }
             });
 
-            $('img[src], script[src], link[href]').each((_, el) => {
+            $('img[src], script[src], link[href], source[src]').each((_, el) => {
                 const src = $(el).attr('src') || $(el).attr('href');
-                if (src && !src.startsWith('data:') && !src.startsWith('blob:')) {
+                if (src && !src.startsWith('data:') && !src.startsWith('blob:') && !src.startsWith('javascript:')) {
                     try {
                         const absoluteUrl = new URL(src, targetUrl).href;
-                        if ($(el).is('img')) {
+                        if ($(el).is('img') || $(el).is('source')) {
                             $(el).attr('src', `/proxy-asset?url=${encodeURIComponent(absoluteUrl)}`);
                         } else if ($(el).is('script')) {
                             $(el).attr('src', `/proxy-asset?url=${encodeURIComponent(absoluteUrl)}`);
@@ -116,14 +129,22 @@ app.get('/browse', async (req, res) => {
                 }
             });
 
-            // Fix WebP images (YouTube grey boxes issue)
-            $('img[src*=".webp"]').each((_, el) => {
-                const src = $(el).attr('src');
-                if (src) {
-                    $(el).attr('data-webp', src);
-                    $(el).attr('src', `/proxy-asset?url=${encodeURIComponent(new URL(src, targetUrl).href)}`);
+            // Fix forms to prevent redirects to real sites
+            $('form[action]').each((_, el) => {
+                const action = $(el).attr('action');
+                if (action) {
+                    try {
+                        const absoluteUrl = new URL(action, targetUrl).href;
+                        $(el).attr('action', `/browse?url=${encodeURIComponent(absoluteUrl)}`);
+                        $(el).attr('method', 'get');
+                    } catch (error) {
+                        // Keep original action if URL construction fails
+                    }
                 }
             });
+
+            // Remove any meta refresh tags
+            $('meta[http-equiv="refresh"]').remove();
 
             const modifiedHtml = $.html();
             
@@ -182,14 +203,35 @@ app.get('/browse', async (req, res) => {
                         ${modifiedHtml}
                     </div>
                     <script>
-                        // Auto-fix for dynamic content loading
+                        // Intercept all navigation and form submissions
+                        document.addEventListener('click', function(e) {
+                            const link = e.target.closest('a');
+                            if (link && link.href) {
+                                e.preventDefault();
+                                window.location.href = '/browse?url=' + encodeURIComponent(link.href);
+                            }
+                        });
+
+                        // Intercept form submissions
+                        document.addEventListener('submit', function(e) {
+                            const form = e.target;
+                            if (form && form.action) {
+                                e.preventDefault();
+                                const formData = new FormData(form);
+                                const params = new URLSearchParams(formData);
+                                window.location.href = '/browse?url=' + encodeURIComponent(form.action + '?' + params.toString());
+                            }
+                        });
+
+                        // Fix for dynamic content loading
                         setTimeout(() => {
-                            document.querySelectorAll('img[data-webp]').forEach(img => {
+                            document.querySelectorAll('img').forEach(img => {
                                 if (img.complete && img.naturalHeight === 0) {
-                                    img.src = img.getAttribute('data-webp');
+                                    const originalSrc = img.src;
+                                    img.src = '/proxy-asset?url=' + encodeURIComponent(originalSrc);
                                 }
                             });
-                        }, 1000);
+                        }, 2000);
                     </script>
                 </body>
                 </html>
@@ -207,7 +249,7 @@ app.get('/browse', async (req, res) => {
     }
 });
 
-// Asset proxy with WebP support
+// Asset proxy with comprehensive support
 app.get('/proxy-asset', async (req, res) => {
     try {
         let targetUrl = req.query.url;
@@ -223,20 +265,22 @@ app.get('/proxy-asset', async (req, res) => {
                 'X-Forwarded-For': IOWA_PROXIES[Math.floor(Math.random() * IOWA_PROXIES.length)].split(':')[0],
                 'Referer': 'https://www.google.com/'
             },
-            timeout: 15000
+            timeout: 20000
         };
 
         const response = await fetch(targetUrl, proxyConfig);
         const buffer = await response.arrayBuffer();
-        const contentType = response.headers.get('content-type') || 'application/octet-stream';
+        let contentType = response.headers.get('content-type') || 'application/octet-stream';
 
-        // Force WebP support
-        if (contentType.includes('webp')) {
-            res.set('Content-Type', 'image/webp');
-        } else {
-            res.set('Content-Type', contentType);
-        }
+        // Handle various content types
+        if (targetUrl.includes('.css')) contentType = 'text/css';
+        if (targetUrl.includes('.js')) contentType = 'application/javascript';
+        if (targetUrl.includes('.png')) contentType = 'image/png';
+        if (targetUrl.includes('.jpg') || targetUrl.includes('.jpeg')) contentType = 'image/jpeg';
+        if (targetUrl.includes('.gif')) contentType = 'image/gif';
+        if (targetUrl.includes('.webp')) contentType = 'image/webp';
         
+        res.set('Content-Type', contentType);
         res.send(Buffer.from(buffer));
 
     } catch (error) {
