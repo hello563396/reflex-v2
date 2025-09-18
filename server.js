@@ -8,8 +8,7 @@ const PORT = process.env.PORT || 3000;
 // Elite Iowa military proxy pool
 const IOWA_PROXIES = [
     '208.108.118.42:3128', '216.164.58.134:8080', 
-    '97.88.83.206:3128', '104.139.118.78:8080',
-    '192.159.117.42:3128', '208.108.118.43:3128'
+    '97.88.83.206:3128', '104.139.118.78:8080'
 ];
 
 const STEALTH_USER_AGENTS = [
@@ -19,6 +18,15 @@ const STEALTH_USER_AGENTS = [
 ];
 
 app.use(express.static('public'));
+
+// Fix URL decoding issues
+const decodeUrl = (url) => {
+    try {
+        return decodeURIComponent(url);
+    } catch {
+        return url;
+    }
+};
 
 // Main page
 app.get('/', (req, res) => {
@@ -31,6 +39,9 @@ app.get('/browse', async (req, res) => {
         let targetUrl = req.query.url;
         
         if (!targetUrl) return res.redirect('/');
+
+        // Decode URL properly
+        targetUrl = decodeUrl(targetUrl);
 
         // Ensure proper URL format
         if (!targetUrl.startsWith('http')) {
@@ -53,9 +64,12 @@ app.get('/browse', async (req, res) => {
                 'Accept-Encoding': 'gzip, deflate, br',
                 'Connection': 'keep-alive',
                 'X-Forwarded-For': IOWA_PROXIES[Math.floor(Math.random() * IOWA_PROXIES.length)].split(':')[0],
-                'X-Real-IP': IOWA_PROXIES[Math.floor(Math.random() * IOWA_PROXIES.length)].split(':')[0]
+                'X-Real-IP': IOWA_PROXIES[Math.floor(Math.random() * IOWA_PROXIES.length)].split(':')[0],
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none'
             },
-            timeout: 15000
+            timeout: 20000
         };
 
         const response = await fetch(targetUrl, proxyConfig);
@@ -65,38 +79,48 @@ app.get('/browse', async (req, res) => {
         }
 
         const contentType = response.headers.get('content-type') || '';
-        const buffer = await response.arrayBuffer();
         
         // Handle different content types
         if (contentType.includes('text/html')) {
-            const html = new TextDecoder().decode(buffer);
+            const html = await response.text();
             const $ = cheerio.load(html);
             
-            // Fix relative URLs
+            // Fix all relative URLs for proper loading
             $('a[href]').each((_, el) => {
-                const href = $(el).attr('href');
-                if (href && !href.startsWith('http') && !href.startsWith('//')) {
-                    $(el).attr('href', `/browse?url=${encodeURIComponent(new URL(href, targetUrl).href)}`);
+                let href = $(el).attr('href');
+                if (href) {
+                    try {
+                        href = new URL(href, targetUrl).href;
+                        $(el).attr('href', `/browse?url=${encodeURIComponent(href)}`);
+                    } catch (error) {
+                        // Keep original href if URL construction fails
+                    }
                 }
             });
 
-            $('img[src]').each((_, el) => {
+            $('img[src], script[src], link[href]').each((_, el) => {
+                const src = $(el).attr('src') || $(el).attr('href');
+                if (src && !src.startsWith('data:') && !src.startsWith('blob:')) {
+                    try {
+                        const absoluteUrl = new URL(src, targetUrl).href;
+                        if ($(el).is('img')) {
+                            $(el).attr('src', `/proxy-asset?url=${encodeURIComponent(absoluteUrl)}`);
+                        } else if ($(el).is('script')) {
+                            $(el).attr('src', `/proxy-asset?url=${encodeURIComponent(absoluteUrl)}`);
+                        } else if ($(el).is('link')) {
+                            $(el).attr('href', `/proxy-asset?url=${encodeURIComponent(absoluteUrl)}`);
+                        }
+                    } catch (error) {
+                        // Keep original src/href if URL construction fails
+                    }
+                }
+            });
+
+            // Fix WebP images (YouTube grey boxes issue)
+            $('img[src*=".webp"]').each((_, el) => {
                 const src = $(el).attr('src');
-                if (src && !src.startsWith('http') && !src.startsWith('//')) {
-                    $(el).attr('src', `/proxy-asset?url=${encodeURIComponent(new URL(src, targetUrl).href)}`);
-                }
-            });
-
-            $('link[href]').each((_, el) => {
-                const href = $(el).attr('href');
-                if (href && !href.startsWith('http') && !href.startsWith('//')) {
-                    $(el).attr('href', `/proxy-asset?url=${encodeURIComponent(new URL(href, targetUrl).href)}`);
-                }
-            });
-
-            $('script[src]').each((_, el) => {
-                const src = $(el).attr('src');
-                if (src && !src.startsWith('http') && !src.startsWith('//')) {
+                if (src) {
+                    $(el).attr('data-webp', src);
                     $(el).attr('src', `/proxy-asset?url=${encodeURIComponent(new URL(src, targetUrl).href)}`);
                 }
             });
@@ -116,27 +140,36 @@ app.get('/browse', async (req, res) => {
                             top: 0;
                             left: 0;
                             right: 0;
-                            background: rgba(0,0,0,0.8);
+                            background: rgba(0,0,0,0.9);
                             color: white;
-                            padding: 10px;
+                            padding: 12px;
                             z-index: 10000;
                             display: flex;
                             align-items: center;
+                            font-family: Arial, sans-serif;
                         }
                         .reflex-url {
-                            background: rgba(255,255,255,0.2);
-                            padding: 5px 10px;
-                            border-radius: 3px;
-                            margin: 0 10px;
+                            background: rgba(255,255,255,0.15);
+                            padding: 8px 12px;
+                            border-radius: 4px;
+                            margin: 0 12px;
                             flex: 1;
+                            font-size: 14px;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
                         }
                         .reflex-back {
                             background: #8ab4f8;
                             color: black;
-                            padding: 5px 10px;
-                            border-radius: 3px;
+                            padding: 8px 16px;
+                            border-radius: 4px;
                             text-decoration: none;
+                            font-weight: bold;
                             margin-right: 10px;
+                        }
+                        .reflex-back:hover {
+                            background: #a8c7fa;
                         }
                     </style>
                 </head>
@@ -145,45 +178,65 @@ app.get('/browse', async (req, res) => {
                         <a href="/" class="reflex-back">← Reflex</a>
                         <div class="reflex-url">${targetUrl}</div>
                     </div>
-                    <div style="margin-top: 50px;">
+                    <div style="margin-top: 60px;">
                         ${modifiedHtml}
                     </div>
+                    <script>
+                        // Auto-fix for dynamic content loading
+                        setTimeout(() => {
+                            document.querySelectorAll('img[data-webp]').forEach(img => {
+                                if (img.complete && img.naturalHeight === 0) {
+                                    img.src = img.getAttribute('data-webp');
+                                }
+                            });
+                        }, 1000);
+                    </script>
                 </body>
                 </html>
             `);
         } else {
-            // Handle other content types (images, CSS, JS)
+            // Handle other content types
+            const buffer = await response.arrayBuffer();
             res.set('Content-Type', contentType);
             res.send(Buffer.from(buffer));
         }
 
     } catch (error) {
         console.error('Proxy error:', error);
-        res.redirect('/?error=Unable to load content');
+        res.redirect('/?error=Unable to load content: ' + error.message);
     }
 });
 
-// Asset proxy for images/CSS/JS
+// Asset proxy with WebP support
 app.get('/proxy-asset', async (req, res) => {
     try {
-        const targetUrl = req.query.url;
+        let targetUrl = req.query.url;
         if (!targetUrl) return res.status(400).send('Invalid URL');
+
+        targetUrl = decodeUrl(targetUrl);
 
         const proxyConfig = {
             method: 'GET',
             headers: {
                 'User-Agent': STEALTH_USER_AGENTS[Math.floor(Math.random() * STEALTH_USER_AGENTS.length)],
                 'Accept': '*/*',
-                'X-Forwarded-For': IOWA_PROXIES[Math.floor(Math.random() * IOWA_PROXIES.length)].split(':')[0]
+                'X-Forwarded-For': IOWA_PROXIES[Math.floor(Math.random() * IOWA_PROXIES.length)].split(':')[0],
+                'Referer': 'https://www.google.com/'
             },
-            timeout: 10000
+            timeout: 15000
         };
 
         const response = await fetch(targetUrl, proxyConfig);
         const buffer = await response.arrayBuffer();
         const contentType = response.headers.get('content-type') || 'application/octet-stream';
 
-        res.set('Content-Type', contentType);
+        // Force WebP support
+        if (contentType.includes('webp')) {
+            res.set('Content-Type', 'image/webp');
+        } else {
+            res.set('Content-Type', contentType);
+        }
+        
         res.send(Buffer.from(buffer));
 
     } catch (error) {
