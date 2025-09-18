@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/proxy", "dest": "/reflex-v2.js" },
+    { "src": "/(.*)", "dest": "/reflex-v2.js" }
+  ]
+}
