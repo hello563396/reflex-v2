@@ -1,8 +1,15 @@
 {
-  "version": 3,
+  "version": 2,
+  "builds": [
+    {
+      "src": "reflex-v2.js",
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
-    { "handle": "filesystem" },
-    { "src": "/proxy", "dest": "/reflex-v2.js" },
-    { "src": "/(.*)", "dest": "/reflex-v2.js" }
+    {
+      "src": "/(.*)",
+      "dest": "/reflex-v2.js"
+    }
   ]
 }
