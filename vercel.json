@@ -26,7 +26,8 @@
   ],
   "functions": {
     "server.js": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "memory": 3008
     }
   }
 }
