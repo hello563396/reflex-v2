@@ -3,174 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reflex Browser - Military Grade</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-            color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            text-align: center;
-            max-width: 600px;
-            width: 100%;
-        }
-
-        .logo {
-            font-size: 4.5rem;
-            font-weight: 300;
-            color: #8ab4f8;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 0 20px rgba(138, 180, 248, 0.3);
-        }
-
-        .tagline {
-            color: #9aa0a6;
-            margin-bottom: 2rem;
-            font-size: 1.1rem;
-        }
-
-        .search-form {
-            width: 100%;
-            margin-bottom: 2rem;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 1.2rem 1.5rem;
-            border: 2px solid #3c4043;
-            border-radius: 28px;
-            background: rgba(32, 33, 36, 0.8);
-            color: #ffffff;
-            font-size: 1.1rem;
-            outline: none;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            border-color: #8ab4f8;
-            box-shadow: 0 0 20px rgba(138, 180, 248, 0.2);
-        }
-
-        .search-btn {
-            margin-top: 1rem;
-            padding: 1rem 2.5rem;
-            background: linear-gradient(135deg, #8ab4f8 0%, #669df6 100%);
-            color: #0a0a0a;
-            border: none;
-            border-radius: 24px;
-            font-size: 1.1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(138, 180, 248, 0.3);
-        }
-
-        .quick-links {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .quick-link {
-            background: rgba(32, 33, 36, 0.6);
-            padding: 1.2rem;
-            border-radius: 12px;
-            text-decoration: none;
-            color: #e8eaed;
-            transition: all 0.3s ease;
-            border: 1px solid #3c4043;
-            backdrop-filter: blur(10px);
-        }
-
-        .quick-link:hover {
-            background: rgba(138, 180, 248, 0.1);
-            border-color: #8ab4f8;
-            transform: translateY(-2px);
-        }
-
-        .error {
-            background: rgba(242, 139, 130, 0.1);
-            color: #f28b82;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            border: 1px solid rgba(242, 139, 130, 0.3);
-        }
-
-        .features {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            background: rgba(32, 33, 36, 0.4);
-            border-radius: 12px;
-            border: 1px solid #3c4043;
-        }
-
-        .features h3 {
-            color: #8ab4f8;
-            margin-bottom: 1rem;
-        }
-
-        .features ul {
-            list-style: none;
-            text-align: left;
-        }
-
-        .features li {
-            margin-bottom: 0.5rem;
-            padding-left: 1.5rem;
-            position: relative;
-        }
-
-        .features li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #00cc66;
-        }
-
-        @media (max-width: 600px) {
-            .logo {
-                font-size: 3rem;
-            }
-            
-            .search-input {
-                padding: 1rem 1.2rem;
-            }
-            
-            .quick-links {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-    </style>
+    <title>Google Classroom</title>
+    <link rel="icon" href="https://www.google.com/favicon.ico">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1 class="logo">Reflex</h1>
-        <p class="tagline">Military Grade Stealth Browser - Iowa Optimized</p>
+        <h1 class="logo">Classroom</h1>
+        <p class="tagline">Iowa-Optimized Secure Access</p>
         
         <form class="search-form" onsubmit="handleSearch(event)">
-            <input type="text" class="search-input" placeholder="Search Google or enter website URL" autocomplete="off" id="searchInput">
-            <button type="submit" class="search-btn">Reflex Search</button>
+            <input type="text" class="search-input" placeholder="Enter website URL" autocomplete="off" id="searchInput">
+            <button type="submit" class="search-btn">Secure Access</button>
         </form>
 
         <div class="quick-links">
@@ -179,51 +23,11 @@
             <a href="/browse?url=https://youtube.com" class="quick-link">YouTube</a>
             <a href="/browse?url=https://netflix.com" class="quick-link">Netflix</a>
             <a href="/browse?url=https://chat.openai.com" class="quick-link">ChatGPT</a>
-            <a href="/browse?url=https://github.com" class="quick-link">GitHub</a>
-        </div>
-
-        <div class="features">
-            <h3>Elite Features:</h3>
-            <ul>
-                <li>Military-grade encryption & stealth</li>
-                <li>Iowa-optimized residential proxies</li>
-                <li>Zero history technology</li>
-                <li>Full image/CSS/JS support</li>
-                <li>China security compliance</li>
-            </ul>
         </div>
 
         <div id="error" class="error"></div>
+        <div id="result" class="result-container"></div>
     </div>
-
-    <script>
-        function handleSearch(event) {
-            event.preventDefault();
-            const input = document.getElementById('searchInput').value.trim();
-            
-            if (!input) return;
-            
-            let url;
-            if (input.includes('.') && !input.includes(' ')) {
-                // It's a URL
-                url = input.startsWith('http') ? input : 'https://' + input;
-            } else {
-                // It's a search query
-                url = 'https://www.google.com/search?q=' + encodeURIComponent(input);
-            }
-            
-            window.location.href = '/browse?url=' + encodeURIComponent(url);
-        }
-
-        // Show error message if any
-        const urlParams = new URLSearchParams(window.location.search);
-        const error = urlParams.get('error');
-        if (error) {
-            document.getElementById('error').textContent = error;
-        }
-
-        // Focus search input on load
-        document.getElementById('searchInput').focus();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
