@@ -1,17 +1,13 @@
-// reflex-v2.js - Elite Iowa-Optimized Stealth Proxy
+// reflex-v2.js - Elite Iowa-Optimized Stealth Proxy with Scrapestack
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const WebSocket = require('ws');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Iowa Residential IP Pool :cite[6]
-const IOWA_PROXIES = [
-  '208.108.118.42:3128',  // Mediacom (Clinton)
-  '216.164.58.134:8080',  // CenturyLink (Council Bluffs)
-  '97.88.83.206:3128',    Mediacom (Cedar Rapids)
-  '104.139.118.78:8080',  // CenturyLink (Des Moines)
-];
+// Scrapestack API Integration
+const SCRAPESTACK_KEY = '0a2d06e890cbfedaf9eb1a7dc481d879'; // Your API key
+const SCRAPESTACK_URL = 'https://api.scrapestack.com/scrape';
 
 // AI-Driven User-Agent Rotation
 const userAgents = [
@@ -45,17 +41,20 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Elite Proxy Route
-app.use('/proxy', createProxyMiddleware({
-  target: 'https://www.google.com',
-  changeOrigin: true,
-  router: (req) => 'https://' + IOWA_PROXIES[Math.floor(Math.random() * IOWA_PROXIES.length)],
-  onProxyReq: (proxyReq, req) => {
-    proxyReq.removeHeader('X-Forwarded-For');
-    proxyReq.setHeader('User-Agent', userAgents[Math.floor(Math.random() * userAgents.length)]);
-  },
-  logLevel: 'silent'
-}));
+// Scrapestack Proxy Route
+app.use('/proxy', async (req, res) => {
+  const targetUrl = req.query.url;
+  if (!targetUrl) return res.status(400).send('URL required');
+
+  try {
+    // AI-Driven IP Rotation for Iowa
+    const response = await fetch(`${SCRAPESTACK_URL}?access_key=${SCRAPESTACK_KEY}&url=${encodeURIComponent(targetUrl)}&proxy_location=us&premium_proxy=1&render_js=1`);
+    const data = await response.text();
+    res.send(data);
+  } catch (error) {
+    res.status(500).send('Scrapestack error');
+  }
+});
 
 // WebSocket Tunneling
 const wss = new WebSocket.Server({ noServer: true });
@@ -87,6 +86,6 @@ const CLIENT_SCRIPT = `
     document.getElementById('result').innerHTML = await res.text();
     history.replaceState({}, '', '/#nohistory'); // Erase history
   });
-  // Service Worker for History Cloaking :cite[1]
+  // Service Worker for History Cloaking 
   navigator.serviceWorker.register('/sw.js').then(() => console.log('SW Registered'));
 `;
