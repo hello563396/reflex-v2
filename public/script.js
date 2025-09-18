@@ -1,4 +1,3 @@
-// Military-grade stealth operations
 class ReflexStealth {
     constructor() {
         this.init();
@@ -6,7 +5,6 @@ class ReflexStealth {
 
     init() {
         this.setupEventListeners();
-        this.setupServiceWorker();
         this.activateStealthMode();
     }
 
@@ -17,125 +15,86 @@ class ReflexStealth {
         });
     }
 
-    async setupServiceWorker() {
-        if ('serviceWorker' in navigator) {
-            try {
-                await navigator.serviceWorker.register('/sw.js');
-                console.log('Service Worker registered for stealth operations');
-            } catch (error) {
-                console.log('Service Worker registration failed:', error);
-            }
-        }
-    }
-
     activateStealthMode() {
-        // Clear all traces
+        // Clear history traces
         this.clearHistory();
-        this.disableLogging();
-        this.monitorDetection();
     }
 
     clearHistory() {
-        // Remove URL from history
         window.history.replaceState({}, '', '/');
-        
-        // Clear storage
         sessionStorage.clear();
-        localStorage.clear();
-        
-        // Clear cookies
-        document.cookie.split(";").forEach((c) => {
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-        });
     }
 
-    disableLogging() {
-        // Override console methods
-        const noop = () => {};
-        console.log = noop;
-        console.warn = noop;
-        console.error = noop;
-    }
-
-    monitorDetection() {
-        // Detect if we're being monitored
-        const detectDevTools = () => {
-            const widthThreshold = window.outerWidth - window.innerWidth > 160;
-            const heightThreshold = window.outerHeight - window.innerHeight > 160;
-            
-            if (widthThreshold || heightThreshold) {
-                this.activateEmergencyProtocol();
-            }
-        };
-
-        setInterval(detectDevTools, 1000);
-    }
-
-    activateEmergencyProtocol() {
-        // Emergency cleanup
-        this.clearHistory();
-        document.body.innerHTML = '<div style="padding: 2rem; text-align: center;"><h1>🔒 Security Protocol Activated</h1><p>All connections secured.</p></div>';
+    isValidUrl(url) {
+        try {
+            new URL(url);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     async handleRequest() {
-        const url = document.getElementById('searchInput').value;
+        const inputUrl = document.getElementById('searchInput').value;
         const resultDiv = document.getElementById('result');
 
-        if (!url) return;
+        if (!inputUrl) {
+            resultDiv.innerHTML = '<div class="error">Please enter a URL</div>';
+            return;
+        }
+
+        // Ensure URL has protocol
+        let targetUrl = inputUrl;
+        if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+            targetUrl = 'https://' + targetUrl;
+        }
+
+        if (!this.isValidUrl(targetUrl)) {
+            resultDiv.innerHTML = '<div class="error">Invalid URL format</div>';
+            return;
+        }
 
         try {
-            resultDiv.innerHTML = '<div class="loading">🚀 Establishing secure connection through Iowa military network...</div>';
+            resultDiv.innerHTML = '<div class="loading">Establishing secure connection...</div>';
             
-            // Add random delay to avoid pattern detection
-            await this.randomDelay(1000, 3000);
-
-            const response = await fetch(`/proxy?url=${encodeURIComponent(url)}`);
+            const response = await fetch(`/proxy?url=${encodeURIComponent(targetUrl)}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
             const data = await response.text();
 
-            // Create secure iframe for content display
             const iframe = document.createElement('iframe');
             iframe.srcdoc = data;
             iframe.style.width = '100%';
             iframe.style.height = '500px';
             iframe.style.border = 'none';
-            iframe.style.borderRadius = '10px';
+            iframe.style.borderRadius = '8px';
 
             resultDiv.innerHTML = '';
             resultDiv.appendChild(iframe);
 
-            // Final stealth cleanup
             this.clearHistory();
 
         } catch (error) {
-            resultDiv.innerHTML = `<div class="error">⚠️ Connection secured. Retrying through backup network...</div>`;
-            // Automatic retry with different parameters
-            setTimeout(() => this.handleRequest(), 2000);
+            resultDiv.innerHTML = `
+                <div class="error">
+                    Connection error: ${error.message}
+                    <br><br>
+                    <button onclick="location.reload()" style="padding: 0.5rem 1rem; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        Try Again
+                    </button>
+                </div>
+            `;
         }
-    }
-
-    randomDelay(min, max) {
-        return new Promise(resolve => setTimeout(resolve, Math.random() * (max - min) + min));
     }
 }
 
-// Initialize stealth system
+// Initialize
 new ReflexStealth();
 
-// Additional security measures
+// Additional security
 window.addEventListener('beforeunload', () => {
-    // Nuclear cleanup
-    indexedDB.databases().then(dbs => {
-        dbs.forEach(db => indexedDB.deleteDatabase(db.name));
-    });
-    
     sessionStorage.clear();
-    localStorage.clear();
-});
-
-// Prevent right-click and developer tools
-document.addEventListener('contextmenu', (e) => e.preventDefault());
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
-        e.preventDefault();
-    }
 });
