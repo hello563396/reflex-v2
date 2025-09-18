@@ -1,3 +1,4 @@
+// Elite History Cloaking System
 class ReflexStealth {
     constructor() {
         this.init();
@@ -16,77 +17,106 @@ class ReflexStealth {
     }
 
     activateStealthMode() {
-        // Clear history traces
-        this.clearHistory();
+        // Tab Cloaking - Disguise as Google Classroom
+        this.cloakTab();
+        
+        // History Manipulation
+        this.manipulateHistory();
+        
+        // Session Cleaning
+        this.cleanSession();
     }
 
-    clearHistory() {
+    cloakTab() {
+        // Change tab title and favicon
+        document.title = "Google Classroom";
+        
+        // Change favicon to Google's
+        const favicon = document.querySelector('link[rel="icon"]') || document.createElement('link');
+        favicon.rel = 'icon';
+        favicon.href = 'https://www.google.com/favicon.ico';
+        document.head.appendChild(favicon);
+        
+        // Prevent inspection
+        this.preventInspection();
+    }
+
+    manipulateHistory() {
+        // Replace history state
         window.history.replaceState({}, '', '/');
-        sessionStorage.clear();
+        
+        // Monitor history changes
+        let lastUrl = location.href;
+        setInterval(() => {
+            if (location.href !== lastUrl) {
+                window.history.replaceState({}, '', '/');
+                lastUrl = location.href;
+            }
+        }, 100);
     }
 
-    isValidUrl(url) {
-        try {
-            new URL(url);
-            return true;
-        } catch {
-            return false;
-        }
+    cleanSession() {
+        // Clear all storage
+        sessionStorage.clear();
+        localStorage.clear();
+        
+        // Clear cookies
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+    }
+
+    preventInspection() {
+        // Anti-dev tools protection
+        const devTools = /./;
+        devTools.toString = function() {
+            return 'Reflex Security Active';
+        };
+        console.log('%c', devTools);
+        
+        // Prevent right-click
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        // Prevent F12, Ctrl+Shift+I, etc.
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                e.preventDefault();
+            }
+        });
     }
 
     async handleRequest() {
         const inputUrl = document.getElementById('searchInput').value;
         const resultDiv = document.getElementById('result');
 
-        if (!inputUrl) {
-            resultDiv.innerHTML = '<div class="error">Please enter a URL</div>';
-            return;
-        }
+        if (!inputUrl) return;
 
-        // Ensure URL has protocol
         let targetUrl = inputUrl;
-        if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+        if (!targetUrl.startsWith('http')) {
             targetUrl = 'https://' + targetUrl;
         }
 
-        if (!this.isValidUrl(targetUrl)) {
-            resultDiv.innerHTML = '<div class="error">Invalid URL format</div>';
-            return;
-        }
-
         try {
-            resultDiv.innerHTML = '<div class="loading">Establishing secure connection...</div>';
+            resultDiv.innerHTML = '<div class="loading">🚀 Establishing secure connection...</div>';
             
-            const response = await fetch(`/proxy?url=${encodeURIComponent(targetUrl)}`);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-            
+            const response = await fetch(`/browse?url=${encodeURIComponent(targetUrl)}`);
             const data = await response.text();
 
+            // Create secure iframe
             const iframe = document.createElement('iframe');
             iframe.srcdoc = data;
             iframe.style.width = '100%';
             iframe.style.height = '500px';
             iframe.style.border = 'none';
-            iframe.style.borderRadius = '8px';
 
             resultDiv.innerHTML = '';
             resultDiv.appendChild(iframe);
 
-            this.clearHistory();
+            // Reapply cloaking
+            this.cloakTab();
 
         } catch (error) {
-            resultDiv.innerHTML = `
-                <div class="error">
-                    Connection error: ${error.message}
-                    <br><br>
-                    <button onclick="location.reload()" style="padding: 0.5rem 1rem; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        Try Again
-                    </button>
-                </div>
-            `;
+            resultDiv.innerHTML = `<div class="error">Elite access failed: ${error.message}</div>`;
         }
     }
 }
@@ -94,7 +124,11 @@ class ReflexStealth {
 // Initialize
 new ReflexStealth();
 
-// Additional security
+// Nuclear cleanup on exit
 window.addEventListener('beforeunload', () => {
+    indexedDB.databases().then(dbs => {
+        dbs.forEach(db => indexedDB.deleteDatabase(db.name));
+    });
     sessionStorage.clear();
+    localStorage.clear();
 });
