@@ -1,4 +1,3 @@
-// Elite History Cloaking System
 class ReflexStealth {
     constructor() {
         this.init();
@@ -7,6 +6,7 @@ class ReflexStealth {
     init() {
         this.setupEventListeners();
         this.activateStealthMode();
+        this.applyAdvancedCloaking();
     }
 
     setupEventListeners() {
@@ -17,35 +17,29 @@ class ReflexStealth {
     }
 
     activateStealthMode() {
-        // Tab Cloaking - Disguise as Google Classroom
-        this.cloakTab();
+        // Tab cloaking
+        document.title = "Google Classroom";
         
-        // History Manipulation
+        // Advanced history manipulation
         this.manipulateHistory();
         
-        // Session Cleaning
+        // Session cleaning
         this.cleanSession();
     }
 
-    cloakTab() {
-        // Change tab title and favicon
-        document.title = "Google Classroom";
-        
-        // Change favicon to Google's
-        const favicon = document.querySelector('link[rel="icon"]') || document.createElement('link');
-        favicon.rel = 'icon';
-        favicon.href = 'https://www.google.com/favicon.ico';
-        document.head.appendChild(favicon);
-        
-        // Prevent inspection
+    applyAdvancedCloaking() {
+        // Prevent dev tools
         this.preventInspection();
+        
+        // Real-time monitoring
+        this.monitorDetection();
     }
 
     manipulateHistory() {
         // Replace history state
         window.history.replaceState({}, '', '/');
         
-        // Monitor history changes
+        // Continuous monitoring
         let lastUrl = location.href;
         setInterval(() => {
             if (location.href !== lastUrl) {
@@ -70,14 +64,11 @@ class ReflexStealth {
         // Anti-dev tools protection
         const devTools = /./;
         devTools.toString = function() {
-            return 'Reflex Security Active';
+            return 'Security Console';
         };
-        console.log('%c', devTools);
         
-        // Prevent right-click
+        // Prevent right-click and F12
         document.addEventListener('contextmenu', (e) => e.preventDefault());
-        
-        // Prevent F12, Ctrl+Shift+I, etc.
         document.addEventListener('keydown', (e) => {
             if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
                 e.preventDefault();
@@ -85,38 +76,61 @@ class ReflexStealth {
         });
     }
 
+    monitorDetection() {
+        // Detect monitoring attempts
+        const detectDevTools = () => {
+            const widthThreshold = window.outerWidth - window.innerWidth > 160;
+            const heightThreshold = window.outerHeight - window.innerHeight > 160;
+            
+            if (widthThreshold || heightThreshold) {
+                this.activateEmergencyProtocol();
+            }
+        };
+
+        setInterval(detectDevTools, 1000);
+    }
+
+    activateEmergencyProtocol() {
+        // Nuclear cleanup
+        this.cleanSession();
+        document.body.innerHTML = '<div style="padding: 2rem; text-align: center;"><h1>🔒 Security Protocol Activated</h1><p>All connections secured.</p></div>';
+    }
+
     async handleRequest() {
-        const inputUrl = document.getElementById('searchInput').value;
+        const input = document.getElementById('searchInput').value;
         const resultDiv = document.getElementById('result');
+        const errorDiv = document.getElementById('error');
 
-        if (!inputUrl) return;
+        if (!input) return;
 
-        let targetUrl = inputUrl;
+        let targetUrl = input;
         if (!targetUrl.startsWith('http')) {
             targetUrl = 'https://' + targetUrl;
         }
 
         try {
-            resultDiv.innerHTML = '<div class="loading">🚀 Establishing secure connection...</div>';
-            
+            resultDiv.innerHTML = '<div class="loading">🚀 Establishing secure Iowa connection...</div>';
+            errorDiv.textContent = '';
+
             const response = await fetch(`/browse?url=${encodeURIComponent(targetUrl)}`);
             const data = await response.text();
 
-            // Create secure iframe
             const iframe = document.createElement('iframe');
             iframe.srcdoc = data;
             iframe.style.width = '100%';
             iframe.style.height = '500px';
             iframe.style.border = 'none';
+            iframe.style.borderRadius = '8px';
 
             resultDiv.innerHTML = '';
             resultDiv.appendChild(iframe);
 
             // Reapply cloaking
-            this.cloakTab();
+            this.activateStealthMode();
 
         } catch (error) {
-            resultDiv.innerHTML = `<div class="error">Elite access failed: ${error.message}</div>`;
+            resultDiv.innerHTML = '';
+            errorDiv.textContent = `Access failed: ${error.message}`;
         }
     }
 }
