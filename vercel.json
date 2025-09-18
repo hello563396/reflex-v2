@@ -11,8 +11,5 @@
       "src": "/(.*)",
       "dest": "/reflex-v2.js"
     }
-  ],
-  "env": {
-    "SCRAPESTACK_KEY": "@scrapestack_key"
-  }
+  ]
 }
