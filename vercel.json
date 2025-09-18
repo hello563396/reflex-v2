@@ -12,7 +12,7 @@
   ],
   "routes": [
     {
-      "src": "/proxy",
+      "src": "/browse",
       "dest": "/server.js"
     },
     {
