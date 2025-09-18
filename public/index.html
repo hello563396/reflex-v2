@@ -1,48 +1,149 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reflex V2 - Elite Proxy</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Reflex Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #202124;
+            color: #e8eaed;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .logo {
+            font-size: 5rem;
+            font-weight: 400;
+            color: #8ab4f8;
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 1px solid #5f6368;
+            border-radius: 24px;
+            background: #303134;
+            color: #e8eaed;
+            font-size: 1.1rem;
+            outline: none;
+            margin-bottom: 1rem;
+        }
+
+        .search-input:focus {
+            border-color: #8ab4f8;
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            background: #8ab4f8;
+            color: #202124;
+            border: none;
+            border-radius: 24px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-btn:hover {
+            background: #a8c7fa;
+        }
+
+        .quick-links {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .quick-link {
+            background: #303134;
+            padding: 1rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #e8eaed;
+            transition: background 0.2s;
+        }
+
+        .quick-link:hover {
+            background: #3c4043;
+        }
+
+        .error {
+            color: #f28b82;
+            margin-top: 1rem;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1 class="logo">Reflex</h1>
-            <div class="security-badge">🔒 Secure Connection</div>
-        </header>
+        <h1 class="logo">Reflex</h1>
         
-        <main>
-            <div class="status-panel">
-                <div class="status-item">
-                    <span class="status-label">Status:</span>
-                    <span class="status-value active">Operational</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Location:</span>
-                    <span class="status-value">Iowa Optimized</span>
-                </div>
-            </div>
+        <form class="search-form" onsubmit="handleSearch(event)">
+            <input type="text" class="search-input" placeholder="Search or enter website URL" autocomplete="off" id="searchInput">
+            <button type="submit" class="search-btn">Reflex Search</button>
+        </form>
 
-            <form id="searchForm" class="stealth-form">
-                <input type="text" id="searchInput" placeholder="Enter website URL" autocomplete="off">
-                <button type="submit">Access Securely</button>
-            </form>
+        <div class="quick-links">
+            <a href="/browse?url=https://neal.fun" class="quick-link">Neal.Fun</a>
+            <a href="/browse?url=https://google.com" class="quick-link">Google</a>
+            <a href="/browse?url=https://youtube.com" class="quick-link">YouTube</a>
+            <a href="/browse?url=https://netflix.com" class="quick-link">Netflix</a>
+            <a href="/browse?url=https://chat.openai.com" class="quick-link">ChatGPT</a>
+            <a href="/browse?url=https://github.com" class="quick-link">GitHub</a>
+        </div>
 
-            <div class="security-features">
-                <h3>Security Features:</h3>
-                <ul>
-                    <li>Military-grade encryption</li>
-                    <li>Iowa-optimized network</li>
-                    <li>Zero-history technology</li>
-                    <li>Real-time protection</li>
-                </ul>
-            </div>
-
-            <div id="result" class="result-container"></div>
-        </main>
+        <div id="error" class="error"></div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        function handleSearch(event) {
+            event.preventDefault();
+            const input = document.getElementById('searchInput').value;
+            
+            if (!input) return;
+            
+            let url = input;
+            if (!url.startsWith('http')) {
+                // Check if it's a search query or URL
+                if (!url.includes('.') || url.includes(' ')) {
+                    url = 'https://google.com/search?q=' + encodeURIComponent(input);
+                } else {
+                    url = 'https://' + url;
+                }
+            }
+            
+            window.location.href = '/browse?url=' + encodeURIComponent(url);
+        }
+
+        // Show error message if any
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        if (error) {
+            document.getElementById('error').textContent = error;
+        }
+    </script>
 </body>
 </html>
