@@ -16,10 +16,6 @@
       "dest": "/server.js"
     },
     {
-      "src": "/proxy-asset",
-      "dest": "/server.js"
-    },
-    {
       "src": "/(.*)",
       "dest": "/public/$1"
     }
