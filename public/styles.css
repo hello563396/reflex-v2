@@ -1,4 +1,4 @@
-:root {:root {
+:root {
     --bg-primary: #0a0a0a;
     --text-primary: #ffffff;
     --input-bg: #1a1a1a;
@@ -34,7 +34,6 @@ body {
     font-weight: 300;
     color: #8ab4f8;
     margin-bottom: 0.5rem;
-    text-shadow: 0 0 20px rgba(138, 180, 248, 0.3);
 }
 
 .tagline {
@@ -56,7 +55,6 @@ body {
     color: var(--text-primary);
     font-size: 1.1rem;
     outline: none;
-    backdrop-filter: blur(10px);
     transition: all 0.3s ease;
 }
 
@@ -98,38 +96,12 @@ body {
     color: #e8eaed;
     transition: all 0.3s ease;
     border: 1px solid #3c4043;
-    backdrop-filter: blur(10px);
 }
 
 .quick-link:hover {
     background: rgba(138, 180, 248, 0.1);
     border-color: #8ab4f8;
     transform: translateY(-2px);
-}
-
-.status-panel {
-    background: rgba(32, 33, 36, 0.4);
-    padding: 1.5rem;
-    border-radius: 12px;
-    margin: 2rem 0;
-    border: 1px solid #3c4043;
-}
-
-.status-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.status-label {
-    font-weight: 500;
-    color: #9aa0a6;
-}
-
-.status-value {
-    color: var(--success);
-    font-weight: 500;
 }
 
 .error {
@@ -148,19 +120,4 @@ body {
 .loading {
     color: #8ab4f8;
     padding: 2rem;
-    font-size: 1.1rem;
-}
-
-@media (max-width: 600px) {
-    .logo {
-        font-size: 3rem;
-    }
-    
-    .search-input {
-        padding: 1rem 1.2rem;
-    }
-    
-    .quick-links {
-        grid-template-columns: 1fr 1fr;
-    }
 }
